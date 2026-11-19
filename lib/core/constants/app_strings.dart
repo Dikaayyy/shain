@@ -16,16 +16,35 @@ class AppStrings {
   static const String networkErrorTitle = 'Koneksi bermasalah';
   static const String networkErrorMessage =
       'Periksa internetmu lalu coba lagi.';
-  static const String serverErrorTitle = 'Gagal memuat data';
+  static const String serverErrorTitle = 'Gagal memuat course';
   static const String serverErrorMessage =
-      'Terjadi gangguan pada server. Silakan coba beberapa saat lagi.';
+      'Server sedang sibuk. Silakan coba lagi beberapa saat.';
   static const String unknownErrorTitle = 'Terjadi kesalahan';
   static const String unknownErrorMessage =
       'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.';
 
   static const String backButtonTooltip = 'Kembali';
 
+  static const String courseDetailTitle = 'Detail Course';
+  static const String aboutCourseSectionTitle = 'Tentang course';
+  static const String lessonListSectionTitle = 'Daftar Lesson';
+  static const String startFirstLessonButton = 'Mulai dari Lesson 1';
+
+  static const String lessonPlayerTitle = 'Pemutar Video';
+  static const String otherLessonsSectionTitle = 'Lesson lainnya';
+  static const String videoLoadingText = 'Memuat video...';
+  static const String videoBufferingText = 'Menyangga video...';
+  static const String videoErrorText = 'Video tidak dapat diputar';
+  static const String playPauseTooltip = 'Putar atau jeda video';
+
   static String lessonCountTag(int count) => '$count lesson';
   static String durationMinutesTag(int minutes) => '$minutes menit';
   static String instructorLabel(String name) => 'Oleh $name';
+  static String activeLessonDuration(String mmss) => '$mmss · Sedang diputar';
+  static String lessonPositionMeta({
+    required int order,
+    required int total,
+    required String courseTitle,
+  }) =>
+      'Lesson $order dari $total · $courseTitle';
 }

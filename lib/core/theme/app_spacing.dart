@@ -21,5 +21,10 @@ class AppSpacing {
 
   static const double borderThin = 1.0;
   static const double borderThick = 2.0;
+  static const double borderActive = 3.0;
+  static const double lessonTileMinHeight = 72.0;
+  static const double lessonBadgeSize = 40.0;
+  static const double playOverlayButtonSize = 64.0;
+  static const double seekThumbSize = 16.0;
   static const double thumbnailAspectRatio = 16 / 9;
 }

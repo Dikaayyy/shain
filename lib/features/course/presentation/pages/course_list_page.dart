@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shain/core/constants/app_strings.dart';
 import 'package:shain/core/network/app_exception.dart';
+import 'package:shain/core/router/app_router.dart';
 import 'package:shain/core/theme/app_colors.dart';
 import 'package:shain/core/theme/app_spacing.dart';
 import 'package:shain/core/theme/app_text_styles.dart';
@@ -116,7 +118,13 @@ class _CourseDataList extends StatelessWidget {
   Widget build(BuildContext context) {
     return _CourseListBody(
       itemCount: courses.length,
-      itemBuilder: (context, index) => CourseCard(course: courses[index]),
+      itemBuilder: (context, index) {
+        final course = courses[index];
+        return CourseCard(
+          course: course,
+          onTap: () => context.push(AppRouter.courseDetailPath(course.id)),
+        );
+      },
     );
   }
 }
