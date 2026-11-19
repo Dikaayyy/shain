@@ -64,8 +64,13 @@ docs/
 ├── design.md                              # Diagram arsitektur, sequence video, & kontrak API
 └── design/                                # Folder untuk screenshot desain Figma
 test/
-├── stage1_test.dart                       # Test model, mapping DioException, & CourseListPage
-└── stage2_test.dart                       # Test detail, widget video, & alur penuh GoRouter
+├── helpers/fake_course_repository.dart    # Fake repository & fixture course untuk test
+├── models_test.dart                       # Test parsing model & formatter durasi
+├── course_repository_test.dart            # Test ApiCourseRepository, error mapping, & provider
+├── course_list_page_test.dart             # Test state loading, empty, & retry CourseListPage
+├── course_detail_page_test.dart           # Test CourseDetailPage & token LessonTile
+├── video_player_widgets_test.dart         # Test VideoStatusOverlay & VideoPlayerControls
+└── course_flow_test.dart                  # Test alur navigasi GoRouter & rute tidak dikenal
 ```
 
 ## Pemilihan Package
