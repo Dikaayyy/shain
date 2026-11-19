@@ -112,3 +112,4 @@ Saat beralih dari mock API statis ke backend REST API produksi:
 - **Tanpa Autentikasi**: Belum tersedia login, token sesi, atau otorisasi pengguna.
 - **Tanpa Cache Offline**: Seluruh data course dan video membutuhkan koneksi internet aktif; tidak ada penyimpanan offline maupun fitur unduh materi.
 - **Belum Ada Persistensi Progres**: Status lesson yang sedang diputar hanya berlaku di sesi layar aktif dan belum menyimpan riwayat atau posisi terakhir menonton.
+- **Orientasi Portrait**: Tata letak difokuskan pada tampilan portrait dengan rasio viewport video `16:9` (belum ada mode fullscreen landscape).

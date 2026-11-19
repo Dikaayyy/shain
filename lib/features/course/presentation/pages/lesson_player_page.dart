@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shain/core/constants/app_strings.dart';
@@ -35,7 +34,6 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
   String? _activeVideoUrl;
   bool _hasInitError = false;
   bool _didFinishInitState = false;
-  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -67,32 +65,10 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
 
   @override
   void dispose() {
-    if (_isFullScreen) _applySystemUiForFullScreen(false);
     WidgetsBinding.instance.removeObserver(this);
     _detailSubscription?.close();
     _controller?.dispose();
     super.dispose();
-  }
-
-  void _setFullScreen(bool value) {
-    if (_isFullScreen == value) return;
-    _applySystemUiForFullScreen(value);
-    setState(() => _isFullScreen = value);
-  }
-
-  void _applySystemUiForFullScreen(bool isFullScreen) {
-    if (isFullScreen) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      SystemChrome.setPreferredOrientations(const [
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations(const [
-        DeviceOrientation.portraitUp,
-      ]);
-    }
   }
 
   Future<void> _initController(String videoUrl) async {
@@ -131,97 +107,79 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
   Widget build(BuildContext context) {
     final detailAsync = ref.watch(courseDetailProvider(widget.courseId));
 
-    return PopScope(
-      canPop: !_isFullScreen,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _isFullScreen) _setFullScreen(false);
-      },
-      child: Scaffold(
-        backgroundColor: _isFullScreen ? AppColors.ink : null,
-        appBar: _isFullScreen
-            ? null
-            : AppTopBar(
-                title: AppStrings.lessonPlayerTitle,
-                onBack: () => _handleBack(context),
-              ),
-        body: detailAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.sky)),
-          error: (error, _) => ErrorView.fromError(
-            error: error,
-            onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
-          ),
-          data: (course) {
-            final currentLesson = _findLesson(course);
-            if (currentLesson == null) {
-              return ErrorView.fromError(
-                error: AppException.unknown(),
-                onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
-              );
-            }
-
-            final viewport = LessonVideoViewport(
-              controller: _controller,
-              hasInitError: _hasInitError,
-              isFullScreen: _isFullScreen,
-              onToggleFullScreen: () => _setFullScreen(!_isFullScreen),
-              onRetry: () => _initController(currentLesson.videoUrl),
-            );
-
-            if (_isFullScreen) return viewport;
-
-            final sortedLessons = List<Lesson>.of(course.lessons)
-              ..sort((a, b) => a.order.compareTo(b.order));
-
-            return ListView(
-              children: [
-                viewport,
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.pageHorizontal,
-                    vertical: AppSpacing.s24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(currentLesson.title, style: AppTextStyles.displayH3),
-                      const SizedBox(height: AppSpacing.s8),
-                      Text(
-                        AppStrings.lessonPositionMeta(
-                          order: currentLesson.order,
-                          total: sortedLessons.length,
-                          courseTitle: course.title,
-                        ),
-                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.inkMuted),
-                      ),
-                      const SizedBox(height: AppSpacing.sectionGap),
-                      const Text(AppStrings.otherLessonsSectionTitle, style: AppTextStyles.displayH3),
-                      const SizedBox(height: AppSpacing.s16),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: sortedLessons.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
-                        itemBuilder: (context, index) {
-                          final lesson = sortedLessons[index];
-                          final isActive = lesson.id == currentLesson.id;
-                          return LessonTile(
-                            lesson: lesson,
-                            isActive: isActive,
-                            onTap: isActive
-                                ? null
-                                : () => context.pushReplacement(
-                                      AppRouter.lessonPlayerPath(course.id, lesson.id),
-                                    ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+    return Scaffold(
+      appBar: AppTopBar(title: AppStrings.lessonPlayerTitle, onBack: () => _handleBack(context)),
+      body: detailAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.sky)),
+        error: (error, _) => ErrorView.fromError(
+          error: error,
+          onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
         ),
+        data: (course) {
+          final currentLesson = _findLesson(course);
+          if (currentLesson == null) {
+            return ErrorView.fromError(
+              error: AppException.unknown(),
+              onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
+            );
+          }
+
+          final sortedLessons = List<Lesson>.of(course.lessons)
+            ..sort((a, b) => a.order.compareTo(b.order));
+
+          return ListView(
+            children: [
+              LessonVideoViewport(
+                controller: _controller,
+                hasInitError: _hasInitError,
+                onRetry: () => _initController(currentLesson.videoUrl),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.pageHorizontal,
+                  vertical: AppSpacing.s24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(currentLesson.title, style: AppTextStyles.displayH3),
+                    const SizedBox(height: AppSpacing.s8),
+                    Text(
+                      AppStrings.lessonPositionMeta(
+                        order: currentLesson.order,
+                        total: sortedLessons.length,
+                        courseTitle: course.title,
+                      ),
+                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.inkMuted),
+                    ),
+                    const SizedBox(height: AppSpacing.sectionGap),
+                    const Text(AppStrings.otherLessonsSectionTitle, style: AppTextStyles.displayH3),
+                    const SizedBox(height: AppSpacing.s16),
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: sortedLessons.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
+                      itemBuilder: (context, index) {
+                        final lesson = sortedLessons[index];
+                        final isActive = lesson.id == currentLesson.id;
+                        return LessonTile(
+                          lesson: lesson,
+                          isActive: isActive,
+                          onTap: isActive
+                              ? null
+                              : () => context.pushReplacement(
+                                    AppRouter.lessonPlayerPath(course.id, lesson.id),
+                                  ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
