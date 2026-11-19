@@ -27,11 +27,11 @@ class AppStrings {
 
   static const String courseDetailTitle = 'Detail Course';
   static const String aboutCourseSectionTitle = 'Tentang course';
-  static const String lessonListSectionTitle = 'Daftar Course';
+  static const String lessonListSectionTitle = 'Daftar Lesson';
   static const String startFirstLessonButton = 'Mulai Belajar';
 
   static const String lessonPlayerTitle = 'Pemutar Video';
-  static const String otherLessonsSectionTitle = 'Course lainnya';
+  static const String otherLessonsSectionTitle = 'Lesson lainnya';
   static const String videoLoadingText = 'Memuat video...';
   static const String videoBufferingText = 'Memuat video...';
   static const String videoErrorText = 'Video tidak dapat diputar';
@@ -41,7 +41,7 @@ class AppStrings {
 
   static String videoTimeProgress(String current, String total) =>
       '$current / $total';
-  static String lessonCountTag(int count) => '$count course';
+  static String lessonCountTag(int count) => '$count lesson';
   static String durationMinutesTag(int minutes) => '$minutes menit';
   static String instructorLabel(String name) => 'Oleh $name';
   static String activeLessonDuration(String mmss) => '$mmss · Sedang diputar';
@@ -49,5 +49,5 @@ class AppStrings {
     required int order,
     required int total,
     required String courseTitle,
-  }) => 'Course $order dari $total · $courseTitle';
+  }) => 'Lesson $order dari $total · $courseTitle';
 }
