@@ -6,16 +6,20 @@ import 'package:shain/core/theme/app_text_styles.dart';
 import 'package:shain/core/utils/duration_format.dart';
 import 'package:video_player/video_player.dart';
 
-/// Overlay kontrol pemutar video berisi tombol play/pause, seek bar, dan durasi.
+/// Overlay kontrol pemutar video berisi tombol play/pause, seek bar, durasi, dan full screen.
 class VideoPlayerControls extends StatefulWidget {
   const VideoPlayerControls({
     super.key,
     required this.controller,
     this.hasInitError = false,
+    this.isFullScreen = false,
+    this.onToggleFullScreen,
   });
 
   final VideoPlayerController controller;
   final bool hasInitError;
+  final bool isFullScreen;
+  final VoidCallback? onToggleFullScreen;
 
   @override
   State<VideoPlayerControls> createState() => _VideoPlayerControlsState();
@@ -150,6 +154,22 @@ class _VideoPlayerControlsState extends State<VideoPlayerControls> {
                           color: AppColors.background,
                         ),
                       ),
+                      if (widget.onToggleFullScreen != null) ...[
+                        const SizedBox(width: AppSpacing.s4),
+                        IconButton(
+                          onPressed: widget.onToggleFullScreen,
+                          tooltip: widget.isFullScreen
+                              ? AppStrings.exitFullScreenTooltip
+                              : AppStrings.enterFullScreenTooltip,
+                          icon: Icon(
+                            widget.isFullScreen
+                                ? Icons.fullscreen_exit_rounded
+                                : Icons.fullscreen_rounded,
+                            color: AppColors.background,
+                            size: AppSpacing.s24,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

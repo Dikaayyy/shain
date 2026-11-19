@@ -27,19 +27,21 @@ class AppStrings {
 
   static const String courseDetailTitle = 'Detail Course';
   static const String aboutCourseSectionTitle = 'Tentang course';
-  static const String lessonListSectionTitle = 'Daftar Lesson';
-  static const String startFirstLessonButton = 'Mulai dari Lesson 1';
+  static const String lessonListSectionTitle = 'Daftar Course';
+  static const String startFirstLessonButton = 'Mulai Belajar';
 
   static const String lessonPlayerTitle = 'Pemutar Video';
-  static const String otherLessonsSectionTitle = 'Lesson lainnya';
+  static const String otherLessonsSectionTitle = 'Course lainnya';
   static const String videoLoadingText = 'Memuat video...';
-  static const String videoBufferingText = 'Menyangga video...';
+  static const String videoBufferingText = 'Memuat video...';
   static const String videoErrorText = 'Video tidak dapat diputar';
   static const String playPauseTooltip = 'Putar atau jeda video';
+  static const String enterFullScreenTooltip = 'Layar penuh';
+  static const String exitFullScreenTooltip = 'Keluar layar penuh';
 
   static String videoTimeProgress(String current, String total) =>
       '$current / $total';
-  static String lessonCountTag(int count) => '$count lesson';
+  static String lessonCountTag(int count) => '$count course';
   static String durationMinutesTag(int minutes) => '$minutes menit';
   static String instructorLabel(String name) => 'Oleh $name';
   static String activeLessonDuration(String mmss) => '$mmss · Sedang diputar';
@@ -47,6 +49,5 @@ class AppStrings {
     required int order,
     required int total,
     required String courseTitle,
-  }) =>
-      'Lesson $order dari $total · $courseTitle';
+  }) => 'Course $order dari $total · $courseTitle';
 }

@@ -5,57 +5,68 @@ import 'package:shain/features/course/presentation/widgets/video_player_controls
 import 'package:shain/features/course/presentation/widgets/video_status_overlay.dart';
 import 'package:video_player/video_player.dart';
 
-/// Viewport video 16:9 yang menggabungkan layer VideoPlayer, kontrol, dan overlay status.
+/// Viewport video 16:9 (atau penuh saat full screen) yang menggabungkan VideoPlayer, kontrol, dan overlay status.
 class LessonVideoViewport extends StatelessWidget {
   const LessonVideoViewport({
     super.key,
     required this.controller,
     required this.hasInitError,
     required this.onRetry,
+    this.isFullScreen = false,
+    this.onToggleFullScreen,
   });
 
   final VideoPlayerController? controller;
   final bool hasInitError;
   final VoidCallback onRetry;
+  final bool isFullScreen;
+  final VoidCallback? onToggleFullScreen;
 
   @override
   Widget build(BuildContext context) {
     final activeController = controller;
+    final viewportContent = ColoredBox(
+      color: AppColors.ink,
+      child: activeController == null
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.sky),
+            )
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                if (activeController.value.isInitialized &&
+                    !activeController.value.hasError &&
+                    !hasInitError)
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: activeController.value.aspectRatio > 0
+                          ? activeController.value.aspectRatio
+                          : AppSpacing.thumbnailAspectRatio,
+                      child: VideoPlayer(activeController),
+                    ),
+                  ),
+                VideoPlayerControls(
+                  controller: activeController,
+                  hasInitError: hasInitError,
+                  isFullScreen: isFullScreen,
+                  onToggleFullScreen: onToggleFullScreen,
+                ),
+                VideoStatusOverlay(
+                  controller: activeController,
+                  hasInitError: hasInitError,
+                  onRetry: onRetry,
+                ),
+              ],
+            ),
+    );
+
+    if (isFullScreen) {
+      return SizedBox.expand(child: viewportContent);
+    }
 
     return AspectRatio(
       aspectRatio: AppSpacing.thumbnailAspectRatio,
-      child: ColoredBox(
-        color: AppColors.ink,
-        child: activeController == null
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.sky),
-              )
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (activeController.value.isInitialized &&
-                      !activeController.value.hasError &&
-                      !hasInitError)
-                    Center(
-                      child: AspectRatio(
-                        aspectRatio: activeController.value.aspectRatio > 0
-                            ? activeController.value.aspectRatio
-                            : AppSpacing.thumbnailAspectRatio,
-                        child: VideoPlayer(activeController),
-                      ),
-                    ),
-                  VideoPlayerControls(
-                    controller: activeController,
-                    hasInitError: hasInitError,
-                  ),
-                  VideoStatusOverlay(
-                    controller: activeController,
-                    hasInitError: hasInitError,
-                    onRetry: onRetry,
-                  ),
-                ],
-              ),
-      ),
+      child: viewportContent,
     );
   }
 }

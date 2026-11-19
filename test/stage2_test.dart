@@ -23,6 +23,7 @@ import 'package:shain/features/course/presentation/pages/course_list_page.dart';
 import 'package:shain/features/course/presentation/pages/lesson_player_page.dart';
 import 'package:shain/features/course/presentation/widgets/course_detail_skeleton.dart';
 import 'package:shain/features/course/presentation/widgets/lesson_tile.dart';
+import 'package:shain/features/course/presentation/widgets/lesson_video_viewport.dart';
 import 'package:shain/features/course/presentation/widgets/video_player_controls.dart';
 import 'package:shain/features/course/presentation/widgets/video_status_overlay.dart';
 import 'package:shain/features/course/providers/course_providers.dart';
@@ -438,6 +439,65 @@ void main() {
       await tester.pump();
       expect(controller.seekTargets, hasLength(1));
       expect(controller.seekTargets.first.inSeconds, greaterThan(45));
+    });
+
+    testWidgets('LessonVideoViewport toggles full-screen icon and layout mode',
+        (tester) async {
+      final controller = _FakeVideoPlayerController();
+      addTearDown(controller.dispose);
+      controller.value = VideoPlayerValue(
+        duration: const Duration(seconds: 90),
+        position: const Duration(seconds: 10),
+        size: const Size(1280, 720),
+        isInitialized: true,
+      );
+
+      var isFullScreen = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Scaffold(
+                body: SizedBox(
+                  width: 360,
+                  height: 500,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: LessonVideoViewport(
+                      controller: controller,
+                      hasInitError: false,
+                      isFullScreen: isFullScreen,
+                      onToggleFullScreen: () =>
+                          setState(() => isFullScreen = !isFullScreen),
+                      onRetry: () {},
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.fullscreen_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_exit_rounded), findsNothing);
+      expect(
+        tester.getSize(find.byType(LessonVideoViewport)),
+        const Size(360, 202.5),
+      );
+
+      await tester.tap(find.byIcon(Icons.fullscreen_rounded));
+      await tester.pump();
+
+      expect(isFullScreen, isTrue);
+      expect(find.byIcon(Icons.fullscreen_exit_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_rounded), findsNothing);
+      expect(
+        tester.getSize(find.byType(LessonVideoViewport)),
+        const Size(360, 500),
+      );
     });
   });
 
