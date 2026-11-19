@@ -28,7 +28,7 @@ class CourseCardSkeleton extends StatelessWidget {
             child: SkeletonBox(
               width: double.infinity,
               height: double.infinity,
-              borderRadius: 0,
+              borderRadius: AppRadius.none,
             ),
           ),
           Padding(

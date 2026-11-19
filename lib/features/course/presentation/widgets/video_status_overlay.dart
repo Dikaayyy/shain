@@ -26,7 +26,7 @@ class VideoStatusOverlay extends StatelessWidget {
       builder: (context, value, _) {
         if (value.hasError || hasInitError) {
           return ColoredBox(
-            color: AppColors.ink.withValues(alpha: 0.85),
+            color: AppColors.errorOverlay,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -85,7 +85,7 @@ class _SpinnerScrim extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Colors.black.withValues(alpha: 0.4),
+      color: AppColors.scrimLight,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shain/core/constants/app_strings.dart';
+import 'package:shain/core/network/app_exception.dart';
 import 'package:shain/core/theme/app_colors.dart';
 import 'package:shain/core/theme/app_spacing.dart';
 import 'package:shain/core/theme/app_text_styles.dart';
@@ -15,6 +16,32 @@ class ErrorView extends StatelessWidget {
     this.icon = Icons.wifi_off_rounded,
     this.retryLabel = AppStrings.retryButton,
   });
+
+  factory ErrorView.fromError({
+    Key? key,
+    required Object error,
+    required VoidCallback onRetry,
+  }) {
+    final exception = error is AppException ? error : AppException.unknown();
+    return ErrorView(
+      key: key,
+      icon: iconForType(exception.type),
+      title: exception.title,
+      message: exception.message,
+      onRetry: onRetry,
+    );
+  }
+
+  static IconData iconForType(AppExceptionType type) {
+    switch (type) {
+      case AppExceptionType.network:
+        return Icons.wifi_off_rounded;
+      case AppExceptionType.server:
+        return Icons.cloud_off_rounded;
+      case AppExceptionType.unknown:
+        return Icons.error_outline_rounded;
+    }
+  }
 
   final String title;
   final String message;

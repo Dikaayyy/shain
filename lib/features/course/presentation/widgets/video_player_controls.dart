@@ -47,7 +47,7 @@ class _VideoPlayerControlsState extends State<VideoPlayerControls> {
                   button: true,
                   label: AppStrings.playPauseTooltip,
                   child: Material(
-                    color: AppColors.background.withValues(alpha: 0.9),
+                    color: AppColors.controlSurface,
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
@@ -78,13 +78,13 @@ class _VideoPlayerControlsState extends State<VideoPlayerControls> {
               right: 0,
               bottom: 0,
               child: DecoratedBox(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.65),
+                      AppColors.transparent,
+                      AppColors.scrimDark,
                     ],
                   ),
                 ),
@@ -99,17 +99,14 @@ class _VideoPlayerControlsState extends State<VideoPlayerControls> {
                     children: [
                       Expanded(
                         child: SizedBox(
-                          height: 40,
+                          height: AppSpacing.minTouchTarget,
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              trackHeight: 4,
+                              trackHeight: AppSpacing.s4,
                               activeTrackColor: AppColors.sky,
-                              inactiveTrackColor: AppColors.background
-                                  .withValues(alpha: 0.4),
+                              inactiveTrackColor: AppColors.trackInactive,
                               thumbColor: AppColors.sky,
-                              overlayColor: AppColors.sky.withValues(
-                                alpha: 0.24,
-                              ),
+                              overlayColor: AppColors.seekOverlay,
                               thumbShape: const RoundSliderThumbShape(
                                 enabledThumbRadius: AppSpacing.seekThumbSize / 2,
                               ),
@@ -145,8 +142,10 @@ class _VideoPlayerControlsState extends State<VideoPlayerControls> {
                       ),
                       const SizedBox(width: AppSpacing.s12),
                       Text(
-                        '${DurationFormat.formatSeconds(currentSeconds)} / '
-                        '${DurationFormat.formatSeconds(totalSeconds)}',
+                        AppStrings.videoTimeProgress(
+                          DurationFormat.formatSeconds(currentSeconds),
+                          DurationFormat.formatSeconds(totalSeconds),
+                        ),
                         style: AppTextStyles.timeMono.copyWith(
                           color: AppColors.background,
                         ),

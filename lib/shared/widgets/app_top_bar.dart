@@ -47,6 +47,10 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                   child: IconButton(
                     onPressed: onBack,
                     tooltip: AppStrings.backButtonTooltip,
+                    constraints: const BoxConstraints(
+                      minWidth: AppSpacing.minTouchTarget,
+                      minHeight: AppSpacing.minTouchTarget,
+                    ),
                     icon: const Icon(
                       Icons.arrow_back_rounded,
                       color: AppColors.ink,

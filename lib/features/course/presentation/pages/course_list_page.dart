@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shain/core/constants/app_strings.dart';
-import 'package:shain/core/network/app_exception.dart';
 import 'package:shain/core/router/app_router.dart';
 import 'package:shain/core/theme/app_colors.dart';
 import 'package:shain/core/theme/app_spacing.dart';
@@ -43,29 +42,12 @@ class CourseListPage extends ConsumerWidget {
           }
           return _CourseDataList(courses: courses);
         },
-        error: (error, _) {
-          final exception =
-              error is AppException ? error : AppException.unknown();
-          return ErrorView(
-            icon: _iconForError(exception.type),
-            title: exception.title,
-            message: exception.message,
-            onRetry: () => ref.invalidate(courseListProvider),
-          );
-        },
+        error: (error, _) => ErrorView.fromError(
+          error: error,
+          onRetry: () => ref.invalidate(courseListProvider),
+        ),
       ),
     );
-  }
-
-  IconData _iconForError(AppExceptionType type) {
-    switch (type) {
-      case AppExceptionType.network:
-        return Icons.wifi_off_rounded;
-      case AppExceptionType.server:
-        return Icons.cloud_off_rounded;
-      case AppExceptionType.unknown:
-        return Icons.error_outline_rounded;
-    }
   }
 }
 

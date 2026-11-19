@@ -37,6 +37,8 @@ class AppStrings {
   static const String videoErrorText = 'Video tidak dapat diputar';
   static const String playPauseTooltip = 'Putar atau jeda video';
 
+  static String videoTimeProgress(String current, String total) =>
+      '$current / $total';
   static String lessonCountTag(int count) => '$count lesson';
   static String durationMinutesTag(int minutes) => '$minutes menit';
   static String instructorLabel(String name) => 'Oleh $name';

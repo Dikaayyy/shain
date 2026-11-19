@@ -18,7 +18,7 @@ class CourseDetailSkeleton extends StatelessWidget {
             child: SkeletonBox(
               width: double.infinity,
               height: double.infinity,
-              borderRadius: 0,
+              borderRadius: AppRadius.none,
             ),
           ),
           Padding(
@@ -62,7 +62,10 @@ class CourseDetailSkeleton extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: AppSpacing.sectionGap),
-                SkeletonBox(width: 160, height: AppSpacing.s24),
+                SkeletonBox(
+                  width: AppSpacing.skeletonHeadingWidth,
+                  height: AppSpacing.s24,
+                ),
                 SizedBox(height: AppSpacing.s12),
                 SkeletonBox(width: double.infinity, height: AppSpacing.s16),
                 SizedBox(height: AppSpacing.s8),
@@ -78,7 +81,10 @@ class CourseDetailSkeleton extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: AppSpacing.sectionGap),
-                SkeletonBox(width: 140, height: AppSpacing.s24),
+                SkeletonBox(
+                  width: AppSpacing.skeletonSubheadingWidth,
+                  height: AppSpacing.s24,
+                ),
                 SizedBox(height: AppSpacing.s16),
                 SkeletonBox(
                   width: double.infinity,

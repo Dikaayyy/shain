@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
+import 'package:shain/app.dart';
 import 'package:shain/core/constants/app_strings.dart';
 import 'package:shain/core/network/app_exception.dart';
 import 'package:shain/core/router/app_router.dart';
@@ -27,6 +27,7 @@ import 'package:shain/features/course/presentation/widgets/video_player_controls
 import 'package:shain/features/course/presentation/widgets/video_status_overlay.dart';
 import 'package:shain/features/course/providers/course_providers.dart';
 import 'package:shain/shared/widgets/app_top_bar.dart';
+import 'package:shain/shared/widgets/error_view.dart';
 import 'package:video_player/video_player.dart';
 
 class _FakeCourseRepository implements CourseRepository {
@@ -442,43 +443,12 @@ void main() {
 
   group('Navigation & LessonPlayerPage', () {
     testWidgets(
-        'navigates List -> Detail -> Player, replaces lesson without stacking, and keeps lesson list usable on error',
+        'navigates List -> Detail -> Player -> switch lesson -> Back to Detail -> Back to List via appRouterProvider',
         (tester) async {
       tester.view.physicalSize = const Size(412, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-
-      final router = GoRouter(
-        initialLocation: AppRouter.homePath,
-        routes: [
-          GoRoute(
-            path: AppRouter.homePath,
-            builder: (context, state) => const CourseListPage(),
-          ),
-          GoRoute(
-            path: AppRouter.courseDetailRoutePath,
-            builder: (context, state) => CourseDetailPage(
-              courseId: state.pathParameters['courseId']!,
-            ),
-          ),
-          GoRoute(
-            path: AppRouter.lessonPlayerRoutePath,
-            pageBuilder: (context, state) {
-              final courseId = state.pathParameters['courseId']!;
-              final lessonId = state.pathParameters['lessonId']!;
-              return NoTransitionPage<void>(
-                key: ValueKey('lesson-$courseId-$lessonId'),
-                child: LessonPlayerPage(
-                  courseId: courseId,
-                  lessonId: lessonId,
-                ),
-              );
-            },
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -500,14 +470,12 @@ void main() {
               ),
             ),
           ],
-          child: MaterialApp.router(
-            theme: AppTheme.light,
-            routerConfig: router,
-          ),
+          child: const ShainApp(),
         ),
       );
 
       await tester.pumpAndSettle();
+      expect(find.byType(CourseListPage), findsOneWidget);
 
       await tester.tap(find.text('Flutter Dasar'));
       await tester.pumpAndSettle();
@@ -547,6 +515,47 @@ void main() {
 
       expect(find.byType(CourseDetailPage), findsOneWidget);
       expect(find.byType(LessonPlayerPage), findsNothing);
+
+      // Back from CourseDetailPage returns to CourseListPage
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CourseListPage), findsOneWidget);
+      expect(find.byType(CourseDetailPage), findsNothing);
+    });
+
+    testWidgets(
+        'unknown route shows generic ErrorView and retry returns to CourseListPage',
+        (tester) async {
+      final router = AppRouter.createRouter(
+        initialLocation: '/rute-tidak-dikenal',
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appRouterProvider.overrideWithValue(router),
+            courseRepositoryProvider.overrideWithValue(
+              _FakeCourseRepository(
+                onGetCourses: () async => const <CourseSummary>[],
+              ),
+            ),
+          ],
+          child: const ShainApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ErrorView), findsOneWidget);
+      expect(find.text(AppStrings.unknownErrorTitle), findsOneWidget);
+      expect(find.text(AppStrings.unknownErrorMessage), findsOneWidget);
+
+      await tester.tap(find.text(AppStrings.retryButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CourseListPage), findsOneWidget);
     });
   });
 }

@@ -14,6 +14,7 @@ import 'package:shain/features/course/data/api_course_repository.dart';
 import 'package:shain/features/course/data/course_detail.dart';
 import 'package:shain/features/course/data/course_repository.dart';
 import 'package:shain/features/course/data/course_summary.dart';
+import 'package:shain/features/course/data/lesson.dart';
 import 'package:shain/features/course/presentation/pages/course_list_page.dart';
 import 'package:shain/features/course/presentation/widgets/course_card_skeleton.dart';
 import 'package:shain/features/course/providers/course_providers.dart';
@@ -94,6 +95,19 @@ void main() {
       expect(detail.lessonCount, 2);
       expect(detail.totalDurationMinutes, 3);
       expect(DurationFormat.formatSeconds(90), '01:30');
+
+      final lesson = Lesson.fromJson({
+        'id': 'flutter-basic-3',
+        'order': 3,
+        'title': 'StatefulWidget',
+        'durationSeconds': 140,
+        'videoUrl': 'https://example.com/3.mp4',
+      });
+      expect(lesson.id, 'flutter-basic-3');
+      expect(lesson.order, 3);
+      expect(lesson.title, 'StatefulWidget');
+      expect(lesson.durationSeconds, 140);
+      expect(lesson.videoUrl, 'https://example.com/3.mp4');
     });
   });
 
@@ -164,6 +178,29 @@ void main() {
           isA<AppException>()
               .having((e) => e.type, 'type', AppExceptionType.server)
               .having((e) => e.statusCode, 'statusCode', 500),
+        ),
+      );
+    });
+
+    test('maps DioExceptionType.unknown to AppException.unknown', () async {
+      final dio = Dio()
+        ..httpClientAdapter = _FakeAdapter((options) async {
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.unknown,
+          );
+        });
+
+      final repo = ApiCourseRepository(dio);
+
+      expect(
+        repo.getCourses(),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.type,
+            'type',
+            AppExceptionType.unknown,
+          ),
         ),
       );
     });

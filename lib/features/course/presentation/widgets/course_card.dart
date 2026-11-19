@@ -6,6 +6,7 @@ import 'package:shain/core/theme/app_spacing.dart';
 import 'package:shain/core/theme/app_text_styles.dart';
 import 'package:shain/core/utils/duration_format.dart';
 import 'package:shain/features/course/data/course_summary.dart';
+import 'package:shain/features/course/presentation/widgets/course_thumbnail.dart';
 import 'package:shain/features/course/presentation/widgets/tag_pill.dart';
 
 /// Kartu ringkasan course yang menampilkan thumbnail 16:9, info, dan tag durasi.
@@ -36,24 +37,7 @@ class CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: AppSpacing.thumbnailAspectRatio,
-              child: Image.network(
-                course.thumbnailUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const _ThumbnailPlaceholder(
-                    icon: Icons.image_outlined,
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return const _ThumbnailPlaceholder(
-                    icon: Icons.broken_image_outlined,
-                  );
-                },
-              ),
-            ),
+            CourseThumbnail(imageUrl: course.thumbnailUrl),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.s16),
               child: Column(
@@ -104,27 +88,6 @@ class CourseCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Placeholder surfaceSunken untuk thumbnail course saat memuat atau gagal muat.
-class _ThumbnailPlaceholder extends StatelessWidget {
-  const _ThumbnailPlaceholder({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.surfaceSunken,
-      child: Center(
-        child: Icon(
-          icon,
-          size: AppSpacing.s32,
-          color: AppColors.inkSubtle,
         ),
       ),
     );

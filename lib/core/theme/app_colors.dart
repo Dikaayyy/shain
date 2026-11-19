@@ -26,4 +26,12 @@ class AppColors {
 
   static const Color outline = Color(0xFFE2E8F0);
   static const Color outlineStrong = Color(0xFF94A3B8);
+
+  static const Color transparent = Color(0x00000000);
+  static const Color scrimLight = Color(0x66000000);
+  static const Color scrimDark = Color(0xA6000000);
+  static const Color errorOverlay = Color(0xD90F172A);
+  static const Color controlSurface = Color(0xE6FFFFFF);
+  static const Color trackInactive = Color(0x66FFFFFF);
+  static const Color seekOverlay = Color(0x3D3B82F6);
 }

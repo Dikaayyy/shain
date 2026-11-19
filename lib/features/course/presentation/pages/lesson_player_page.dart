@@ -10,24 +10,15 @@ import 'package:shain/core/theme/app_text_styles.dart';
 import 'package:shain/features/course/data/course_detail.dart';
 import 'package:shain/features/course/data/lesson.dart';
 import 'package:shain/features/course/presentation/widgets/lesson_tile.dart';
-import 'package:shain/features/course/presentation/widgets/video_player_controls.dart';
-import 'package:shain/features/course/presentation/widgets/video_status_overlay.dart';
+import 'package:shain/features/course/presentation/widgets/lesson_video_viewport.dart';
 import 'package:shain/features/course/providers/course_providers.dart';
 import 'package:shain/shared/widgets/app_top_bar.dart';
 import 'package:shain/shared/widgets/error_view.dart';
 import 'package:video_player/video_player.dart';
 
-/// Halaman pemutar video lesson dengan kontrol playback, status overlay, dan daftar lesson.
-///
-/// Video diputar secara streaming langsung dari URL (bukan download lalu view)
-/// agar pemutaran dapat dimulai lebih cepat tanpa menunggu seluruh berkas
-/// selesai diunduh, sekaligus tanpa memakai ruang penyimpanan (storage) perangkat.
+/// Halaman pemutar video lesson dengan kontrol playback streaming dan daftar lesson lain.
 class LessonPlayerPage extends ConsumerStatefulWidget {
-  const LessonPlayerPage({
-    super.key,
-    required this.courseId,
-    required this.lessonId,
-  });
+  const LessonPlayerPage({super.key, required this.courseId, required this.lessonId});
 
   final String courseId;
   final String lessonId;
@@ -54,9 +45,7 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
         if (next case AsyncData<CourseDetail>(:final value)) {
           if (_activeVideoUrl != null) return;
           final lesson = _findLesson(value);
-          if (lesson != null) {
-            _initController(lesson.videoUrl);
-          }
+          if (lesson != null) _initController(lesson.videoUrl);
         }
       },
       fireImmediately: true,
@@ -70,9 +59,7 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       final controller = _controller;
-      if (controller != null && controller.value.isPlaying) {
-        controller.pause();
-      }
+      if (controller != null && controller.value.isPlaying) controller.pause();
     }
   }
 
@@ -92,14 +79,9 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
     _hasInitError = false;
 
     if (previousController != null) {
-      if (mounted) {
-        setState(() {});
-      }
-      // Dispose controller lama setelah frame selesai rebuild agar widget tree
-      // tidak lagi memakai atau melepas listener dari controller yang sudah disposed.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        previousController.dispose();
-      });
+      if (mounted) setState(() {});
+      // Dispose controller lama setelah frame rebuild selesai agar aman dari listener aktif.
+      WidgetsBinding.instance.addPostFrameCallback((_) => previousController.dispose());
     } else if (_didFinishInitState && mounted) {
       setState(() {});
     }
@@ -110,9 +92,7 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
       setState(() {});
     } catch (_) {
       if (!mounted || _controller != controller) return;
-      setState(() {
-        _hasInitError = true;
-      });
+      setState(() => _hasInitError = true);
     }
   }
 
@@ -128,78 +108,31 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
     final detailAsync = ref.watch(courseDetailProvider(widget.courseId));
 
     return Scaffold(
-      appBar: AppTopBar(
-        title: AppStrings.lessonPlayerTitle,
-        onBack: () => _handleBack(context),
-      ),
+      appBar: AppTopBar(title: AppStrings.lessonPlayerTitle, onBack: () => _handleBack(context)),
       body: detailAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.sky),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.sky)),
+        error: (error, _) => ErrorView.fromError(
+          error: error,
+          onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
         ),
-        error: (error, _) {
-          final exception =
-              error is AppException ? error : AppException.unknown();
-          return ErrorView(
-            icon: _iconForError(exception.type),
-            title: exception.title,
-            message: exception.message,
-            onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
-          );
-        },
         data: (course) {
           final currentLesson = _findLesson(course);
           if (currentLesson == null) {
-            final exception = AppException.unknown();
-            return ErrorView(
-              icon: _iconForError(exception.type),
-              title: exception.title,
-              message: exception.message,
-              onRetry: () =>
-                  ref.invalidate(courseDetailProvider(widget.courseId)),
+            return ErrorView.fromError(
+              error: AppException.unknown(),
+              onRetry: () => ref.invalidate(courseDetailProvider(widget.courseId)),
             );
           }
 
           final sortedLessons = List<Lesson>.of(course.lessons)
             ..sort((a, b) => a.order.compareTo(b.order));
-          final controller = _controller;
 
           return ListView(
             children: [
-              AspectRatio(
-                aspectRatio: AppSpacing.thumbnailAspectRatio,
-                child: ColoredBox(
-                  color: AppColors.ink,
-                  child: controller == null
-                      ? const Center(
-                          child: CircularProgressIndicator(color: AppColors.sky),
-                        )
-                      : Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (controller.value.isInitialized &&
-                                !controller.value.hasError &&
-                                !_hasInitError)
-                              Center(
-                                child: AspectRatio(
-                                  aspectRatio: controller.value.aspectRatio > 0
-                                      ? controller.value.aspectRatio
-                                      : AppSpacing.thumbnailAspectRatio,
-                                  child: VideoPlayer(controller),
-                                ),
-                              ),
-                            VideoPlayerControls(
-                              controller: controller,
-                              hasInitError: _hasInitError,
-                            ),
-                            VideoStatusOverlay(
-                              controller: controller,
-                              hasInitError: _hasInitError,
-                              onRetry: () =>
-                                  _initController(currentLesson.videoUrl),
-                            ),
-                          ],
-                        ),
-                ),
+              LessonVideoViewport(
+                controller: _controller,
+                hasInitError: _hasInitError,
+                onRetry: () => _initController(currentLesson.videoUrl),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -209,10 +142,7 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      currentLesson.title,
-                      style: AppTextStyles.displayH3,
-                    ),
+                    Text(currentLesson.title, style: AppTextStyles.displayH3),
                     const SizedBox(height: AppSpacing.s8),
                     Text(
                       AppStrings.lessonPositionMeta(
@@ -220,23 +150,16 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
                         total: sortedLessons.length,
                         courseTitle: course.title,
                       ),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
+                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.inkMuted),
                     ),
                     const SizedBox(height: AppSpacing.sectionGap),
-                    const Text(
-                      AppStrings.otherLessonsSectionTitle,
-                      style: AppTextStyles.displayH3,
-                    ),
+                    const Text(AppStrings.otherLessonsSectionTitle, style: AppTextStyles.displayH3),
                     const SizedBox(height: AppSpacing.s16),
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: sortedLessons.length,
-                      separatorBuilder: (_, _) => const SizedBox(
-                        height: AppSpacing.cardGap,
-                      ),
+                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
                       itemBuilder: (context, index) {
                         final lesson = sortedLessons[index];
                         final isActive = lesson.id == currentLesson.id;
@@ -246,10 +169,7 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
                           onTap: isActive
                               ? null
                               : () => context.pushReplacement(
-                                    AppRouter.lessonPlayerPath(
-                                      course.id,
-                                      lesson.id,
-                                    ),
+                                    AppRouter.lessonPlayerPath(course.id, lesson.id),
                                   ),
                         );
                       },
@@ -269,17 +189,6 @@ class _LessonPlayerPageState extends ConsumerState<LessonPlayerPage>
       Navigator.of(context).pop();
     } else {
       GoRouter.maybeOf(context)?.go(AppRouter.courseDetailPath(widget.courseId));
-    }
-  }
-
-  IconData _iconForError(AppExceptionType type) {
-    switch (type) {
-      case AppExceptionType.network:
-        return Icons.wifi_off_rounded;
-      case AppExceptionType.server:
-        return Icons.cloud_off_rounded;
-      case AppExceptionType.unknown:
-        return Icons.error_outline_rounded;
     }
   }
 }

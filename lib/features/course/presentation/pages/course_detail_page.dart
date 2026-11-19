@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shain/core/constants/app_strings.dart';
-import 'package:shain/core/network/app_exception.dart';
 import 'package:shain/core/router/app_router.dart';
 import 'package:shain/core/theme/app_colors.dart';
 import 'package:shain/core/theme/app_spacing.dart';
@@ -11,6 +10,7 @@ import 'package:shain/core/utils/duration_format.dart';
 import 'package:shain/features/course/data/course_detail.dart';
 import 'package:shain/features/course/data/lesson.dart';
 import 'package:shain/features/course/presentation/widgets/course_detail_skeleton.dart';
+import 'package:shain/features/course/presentation/widgets/course_thumbnail.dart';
 import 'package:shain/features/course/presentation/widgets/lesson_tile.dart';
 import 'package:shain/features/course/presentation/widgets/tag_pill.dart';
 import 'package:shain/features/course/providers/course_providers.dart';
@@ -38,16 +38,10 @@ class CourseDetailPage extends ConsumerWidget {
       ),
       body: detailAsync.when(
         loading: () => const CourseDetailSkeleton(),
-        error: (error, _) {
-          final exception =
-              error is AppException ? error : AppException.unknown();
-          return ErrorView(
-            icon: _iconForError(exception.type),
-            title: exception.title,
-            message: exception.message,
-            onRetry: () => ref.invalidate(courseDetailProvider(courseId)),
-          );
-        },
+        error: (error, _) => ErrorView.fromError(
+          error: error,
+          onRetry: () => ref.invalidate(courseDetailProvider(courseId)),
+        ),
         data: (course) => _CourseDetailContent(course: course),
       ),
     );
@@ -58,17 +52,6 @@ class CourseDetailPage extends ConsumerWidget {
       Navigator.of(context).pop();
     } else {
       GoRouter.maybeOf(context)?.go(AppRouter.homePath);
-    }
-  }
-
-  IconData _iconForError(AppExceptionType type) {
-    switch (type) {
-      case AppExceptionType.network:
-        return Icons.wifi_off_rounded;
-      case AppExceptionType.server:
-        return Icons.cloud_off_rounded;
-      case AppExceptionType.unknown:
-        return Icons.error_outline_rounded;
     }
   }
 }
@@ -91,24 +74,7 @@ class _CourseDetailContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AspectRatio(
-                  aspectRatio: AppSpacing.thumbnailAspectRatio,
-                  child: Image.network(
-                    course.thumbnailUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const _ThumbnailPlaceholder(
-                        icon: Icons.image_outlined,
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const _ThumbnailPlaceholder(
-                        icon: Icons.broken_image_outlined,
-                      );
-                    },
-                  ),
-                ),
+                CourseThumbnail(imageUrl: course.thumbnailUrl),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.pageHorizontal,
@@ -117,10 +83,7 @@ class _CourseDetailContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        course.title,
-                        style: AppTextStyles.displayH2,
-                      ),
+                      Text(course.title, style: AppTextStyles.displayH2),
                       const SizedBox(height: AppSpacing.s8),
                       Text(
                         AppStrings.instructorLabel(course.instructor),
@@ -151,10 +114,7 @@ class _CourseDetailContent extends StatelessWidget {
                         style: AppTextStyles.displayH3,
                       ),
                       const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        course.description,
-                        style: AppTextStyles.bodyMedium,
-                      ),
+                      Text(course.description, style: AppTextStyles.bodyMedium),
                       const SizedBox(height: AppSpacing.sectionGap),
                       const Text(
                         AppStrings.lessonListSectionTitle,
@@ -215,27 +175,6 @@ class _CourseDetailContent extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Placeholder surfaceSunken untuk thumbnail detail course saat memuat atau gagal muat.
-class _ThumbnailPlaceholder extends StatelessWidget {
-  const _ThumbnailPlaceholder({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.surfaceSunken,
-      child: Center(
-        child: Icon(
-          icon,
-          size: AppSpacing.s32,
-          color: AppColors.inkSubtle,
-        ),
-      ),
     );
   }
 }

@@ -27,4 +27,6 @@ class AppSpacing {
   static const double playOverlayButtonSize = 64.0;
   static const double seekThumbSize = 16.0;
   static const double thumbnailAspectRatio = 16 / 9;
+  static const double skeletonHeadingWidth = 160.0;
+  static const double skeletonSubheadingWidth = 140.0;
 }
